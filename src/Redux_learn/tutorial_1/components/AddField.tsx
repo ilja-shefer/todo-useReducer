@@ -4,25 +4,32 @@ import AddIcon from '@mui/icons-material/Add';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
-interface InterTakeTask {
+interface paramTakeTask {
   input: string;
 }
 
 type AddFieldProps = {
-  onClickAdd: () => void;
-  onChangeInput: (event: any) => void;
-  handleChecked: () => void;
-  checked: boolean;
-  inputTakeTask: InterTakeTask;
+  onAdd: (text: string, checked: boolean) => void;
 };
 
-export const AddField: React.FC<AddFieldProps> = ({
-  onClickAdd,
-  onChangeInput,
-  handleChecked,
-  inputTakeTask,
-  checked,
-}) => {
+export const AddField: React.FC<AddFieldProps> = ({ onAdd }) => {
+  const [inputTakeTask, setInputTakeTask] = React.useState('');
+
+  const onChangeInput = (event: { target: { value: React.SetStateAction<string> } }) => {
+    setInputTakeTask(event.target.value);
+  };
+
+  const [checked, setChecked] = React.useState(false);
+
+  const handleChecked = () => {
+    setChecked(!checked);
+  };
+  const onClickAdd = () => {
+    onAdd(inputTakeTask, checked);
+    setChecked(false);
+    setInputTakeTask('');
+  };
+
   return (
     <div className="field">
       <Checkbox
@@ -33,8 +40,7 @@ export const AddField: React.FC<AddFieldProps> = ({
         checkedIcon={<CheckCircleIcon />}
       />
       <TextField
-        name="input"
-        value={inputTakeTask.input}
+        value={inputTakeTask}
         onChange={onChangeInput}
         placeholder="Введите текст задачи..."
         variant="standard"

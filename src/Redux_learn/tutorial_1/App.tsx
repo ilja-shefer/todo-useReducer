@@ -3,50 +3,42 @@ import { Paper, Divider, Button, List, Tabs, Tab } from '@mui/material';
 import { AddField } from './components/AddField';
 import { Item } from './components/Item';
 
-export type ArrProps = {
+type Task = {
   id: number;
   text: string;
   completed: boolean;
 };
 
-function reducer(state: any, action: any) {
-  if (action.type === 'ADD_TASK') {
-    let newId = state.length;
-    const makeId = () => {
-      return newId++;
-    };
-    makeId();
-    return [
-      ...state,
-      {
-        id: newId,
-        text: action.payload.text,
-        completed: action.payload.completed,
-      },
-    ];
+type State = Task[];
+
+type AddTaskAction = {
+  type: 'ADD_TASK';
+  payload: Task;
+};
+
+type RemoveTaskAction = {
+  type: 'REMOVE_TASK';
+  payload: number;
+};
+
+function reducer(state: State, action: AddTaskAction | RemoveTaskAction) {
+  switch (action.type) {
+    case 'ADD_TASK':
+      return [
+        ...state,
+        {
+          id: action.payload.id,
+          text: action.payload.text,
+          completed: action.payload.completed,
+        },
+      ];
+    case 'REMOVE_TASK':
+      return state.filter((_, index) => index !== action.payload);
   }
   return state;
 }
 
 function App() {
-  const [inputTakeTask, setInputTakeTask] = React.useState({
-    input: '',
-  });
-
-  const onChangeInput = (event: any) => {
-    const { name, value } = event.target;
-    setInputTakeTask({
-      ...inputTakeTask,
-      [name]: value,
-    });
-  };
-
-  const [checked, setChecked] = React.useState(false);
-
-  const handleChecked = () => {
-    setChecked(!checked);
-  };
-
   const [state, dispatch] = React.useReducer(reducer, [
     {
       id: 1,
@@ -60,19 +52,31 @@ function App() {
     },
   ]);
 
-  const addTask = () => {
-    if (inputTakeTask.input.trim()) {
+  const addTask = (text: string, checked: boolean) => {
+    if (text.trim()) {
+      let newId = state.length;
+      const makeId = () => {
+        return newId++;
+      };
+      makeId();
       dispatch({
         type: 'ADD_TASK',
         payload: {
-          text: inputTakeTask.input,
+          id: newId,
+          text: text,
           completed: checked,
         },
       });
-      setInputTakeTask({
-        input: '',
+    }
+  };
+
+  const removeTask = (id: number) => {
+    console.log(id);
+    if (window.confirm('Вы хотите удалить задачу?')) {
+      dispatch({
+        type: 'REMOVE_TASK',
+        payload: id,
       });
-      setChecked(false);
     }
   };
 
@@ -82,13 +86,7 @@ function App() {
         <Paper className="header" elevation={0}>
           <h4>Список задач</h4>
         </Paper>
-        <AddField
-          onClickAdd={addTask}
-          onChangeInput={onChangeInput}
-          handleChecked={handleChecked}
-          checked={checked}
-          inputTakeTask={inputTakeTask}
-        />
+        <AddField onAdd={addTask} />
         <Divider />
         <Tabs value={0}>
           <Tab label="Все" />
@@ -97,8 +95,13 @@ function App() {
         </Tabs>
         <Divider />
         <List>
-          {state.map((obj: any) => (
-            <Item key={obj.id} text={obj.text} completed={obj.completed} />
+          {state.map((obj, index) => (
+            <Item
+              key={obj.id}
+              text={obj.text}
+              completed={obj.completed}
+              removeTask={() => removeTask(index)}
+            />
           ))}
         </List>
         <Divider />

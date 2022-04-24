@@ -9,9 +9,10 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 type ItemProps = {
   text: String;
   completed: boolean;
+  removeTask: () => void;
 };
 
-export const Item: React.FC<ItemProps> = ({ text, completed }) => {
+export const Item: React.FC<ItemProps> = ({ text, completed, removeTask }) => {
   return (
     <ListItem>
       <div className="d-flex item">
@@ -26,7 +27,7 @@ export const Item: React.FC<ItemProps> = ({ text, completed }) => {
             <EditIcon style={{ fontSize: 20 }} />
           </IconButton>
           <IconButton>
-            <DeleteOutlineIcon style={{ fontSize: 20 }} />
+            <DeleteOutlineIcon style={{ fontSize: 20 }} onClick={removeTask} />
           </IconButton>
         </div>
       </div>
