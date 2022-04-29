@@ -63,7 +63,6 @@ function reducer(state: State, action: Actions) {
         },
       ];
     case 'REMOVE_TASK':
-      console.log('remove');
       return state.filter((obj) => obj.id !== action.payload.id);
     case 'TOGGLE_COMPLETE':
       return [...state].map((obj) => {
