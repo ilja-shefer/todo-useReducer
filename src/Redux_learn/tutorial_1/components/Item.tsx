@@ -5,29 +5,31 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { Task } from '../App';
 
 type ItemProps = {
-  text: String;
-  completed: boolean;
-  removeTask: () => void;
+  task: Task;
+  removeTask: (id: number) => void;
+  onClickCheckbox: (id: number) => void;
 };
 
-export const Item: React.FC<ItemProps> = ({ text, completed, removeTask }) => {
+export const Item: React.FC<ItemProps> = ({ task, removeTask, onClickCheckbox }) => {
   return (
     <ListItem>
       <div className="d-flex item">
         <Checkbox
-          checked={completed}
+          checked={task.completed}
           icon={<RadioButtonUncheckedIcon />}
           checkedIcon={<CheckCircleIcon />}
+          onChange={() => onClickCheckbox(task.id)}
         />
-        <Typography className="item-text">{text}</Typography>
+        <Typography className="item-text">{task.text}</Typography>
         <div className="item-buttons d-flex">
           <IconButton>
             <EditIcon style={{ fontSize: 20 }} />
           </IconButton>
-          <IconButton>
-            <DeleteOutlineIcon style={{ fontSize: 20 }} onClick={removeTask} />
+          <IconButton onClick={() => removeTask(task.id)}>
+            <DeleteOutlineIcon style={{ fontSize: 20 }} />
           </IconButton>
         </div>
       </div>

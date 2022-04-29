@@ -3,7 +3,7 @@ import { Paper, Divider, Button, List, Tabs, Tab } from '@mui/material';
 import { AddField } from './components/AddField';
 import { Item } from './components/Item';
 
-type Task = {
+export type Task = {
   id: number;
   text: string;
   completed: boolean;
@@ -13,27 +13,88 @@ type State = Task[];
 
 type AddTaskAction = {
   type: 'ADD_TASK';
-  payload: Task;
+  payload: {
+    text: string;
+    completed: boolean;
+  };
 };
 
 type RemoveTaskAction = {
   type: 'REMOVE_TASK';
-  payload: number;
+  payload: { id: number };
 };
 
-function reducer(state: State, action: AddTaskAction | RemoveTaskAction) {
+type ToggleTaskAction = {
+  type: 'TOGGLE_COMPLETE';
+  payload: { id: number };
+};
+
+type ToggleCompleteAllAction = {
+  type: 'TOGGLE_COMPLETE_ALL';
+};
+
+type ClearTasksAction = {
+  type: 'CLEAR_ALL_TASKS';
+};
+
+type SortTabsAction = {
+  type: 'SORT_TABS';
+};
+
+type Actions =
+  | AddTaskAction
+  | RemoveTaskAction
+  | ToggleTaskAction
+  | ToggleCompleteAllAction
+  | ClearTasksAction
+  | SortTabsAction;
+
+function reducer(state: State, action: Actions) {
   switch (action.type) {
     case 'ADD_TASK':
+      let newId = state.length + 1;
+
       return [
         ...state,
         {
-          id: action.payload.id,
+          id: newId,
           text: action.payload.text,
           completed: action.payload.completed,
         },
       ];
     case 'REMOVE_TASK':
-      return state.filter((_, index) => index !== action.payload);
+      console.log('remove');
+      return state.filter((obj) => obj.id !== action.payload.id);
+    case 'TOGGLE_COMPLETE':
+      return [...state].map((obj) => {
+        if (obj.id === action.payload.id) {
+          return {
+            ...obj,
+            completed: !obj.completed,
+          };
+        }
+        return obj;
+      });
+    case 'TOGGLE_COMPLETE_ALL':
+      const allCompleted = state.every((obj) => obj.completed === true);
+      return state.map((obj) => {
+        if (allCompleted === false) {
+          return {
+            ...obj,
+            completed: true,
+          };
+        } else if (allCompleted === true) {
+          return {
+            ...obj,
+            completed: false,
+          };
+        }
+        return obj;
+      });
+    case 'CLEAR_ALL_TASKS':
+      return [];
+    case 'SORT_TABS':
+      return state;
   }
   return state;
 }
@@ -52,34 +113,55 @@ function App() {
     },
   ]);
 
+  const allCompleted = state.every((obj) => obj.completed === true);
+  const [activeTab, setActiveTab] = React.useState(0);
+
+  const tabs = ['Все', 'Активные', 'Завершенные'];
+
   const addTask = (text: string, checked: boolean) => {
-    if (text.trim()) {
-      let newId = state.length;
-      const makeId = () => {
-        return newId++;
-      };
-      makeId();
-      dispatch({
-        type: 'ADD_TASK',
-        payload: {
-          id: newId,
-          text: text,
-          completed: checked,
-        },
-      });
-    }
+    dispatch({
+      type: 'ADD_TASK',
+      payload: {
+        text: text,
+        completed: checked,
+      },
+    });
   };
 
   const removeTask = (id: number) => {
-    console.log(id);
     if (window.confirm('Вы хотите удалить задачу?')) {
       dispatch({
         type: 'REMOVE_TASK',
-        payload: id,
+        payload: { id },
       });
     }
   };
 
+  const toggleComplete = (id: number) => {
+    dispatch({
+      type: 'TOGGLE_COMPLETE',
+      payload: { id },
+    });
+  };
+
+  const toggleCompleteAll = () => {
+    dispatch({
+      type: 'TOGGLE_COMPLETE_ALL',
+    });
+  };
+
+  const clearTasks = () => {
+    dispatch({
+      type: 'CLEAR_ALL_TASKS',
+    });
+  };
+
+  const sortTabs = (index: number) => {
+    setActiveTab(index);
+    dispatch({
+      type: 'SORT_TABS',
+    });
+  };
   return (
     <div className="App">
       <Paper className="wrapper">
@@ -88,26 +170,38 @@ function App() {
         </Paper>
         <AddField onAdd={addTask} />
         <Divider />
-        <Tabs value={0}>
-          <Tab label="Все" />
-          <Tab label="Активные" />
-          <Tab label="Завершённые" />
+        <Tabs value={activeTab}>
+          {tabs.map((item, index) => (
+            <Tab key={`${item}_${index}`} label={item} onClick={() => sortTabs(index)} />
+          ))}
         </Tabs>
         <Divider />
         <List>
-          {state.map((obj, index) => (
-            <Item
-              key={obj.id}
-              text={obj.text}
-              completed={obj.completed}
-              removeTask={() => removeTask(index)}
-            />
-          ))}
+          {state
+            .filter((obj) => {
+              if (activeTab === 0) {
+                return true;
+              } else if (activeTab === 1 && obj.completed === false) {
+                return true;
+              } else if (activeTab === 2 && obj.completed === true) {
+                return true;
+              }
+            })
+            .map((obj) => (
+              <Item
+                task={obj}
+                key={obj.id}
+                removeTask={removeTask}
+                onClickCheckbox={toggleComplete}
+              />
+            ))}
         </List>
         <Divider />
         <div className="check-buttons">
-          <Button>Отметить всё</Button>
-          <Button>Очистить</Button>
+          <Button onClick={toggleCompleteAll}>
+            {allCompleted ? 'Снять отметки' : 'Отметить все'}
+          </Button>
+          <Button onClick={clearTasks}>Очистить</Button>
         </div>
       </Paper>
     </div>
